@@ -24,7 +24,7 @@ lappend auto_path $config(whereIsSituatedDb)
 lappend auto_path [file dirname [info script] ]
 # option of main window 
 set windowparams {
-    title "Scheduler & Planner"
+    title "Your task(s) scheduler"
     minsize {400 400}
     resizable {1 1}
 }
