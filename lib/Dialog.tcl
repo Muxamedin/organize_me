@@ -1,8 +1,14 @@
+namespace eval ::dialog {
+    
+}
+
 
 proc init_arr_addtask {} {
     upvar #0 add_task  add_task_
+    global config
     array set add_task_ {
-        remind  "Once"
+        day_number 1
+        remind  "Never"
         hours   "hours"
         mins    "minutes"
         month   "January"
@@ -10,7 +16,13 @@ proc init_arr_addtask {} {
         topic_var "New"
         wyear     ""
         handleCalendar ""
+        choosed_day 1
+        
     }
+    foreach {ind value} [ db_get_taskgrop $config(dbPath)] {
+        lappend lst $value
+    }
+    set add_task_(topic_lst)  $lst
 }
 
 #tk_messageBox -message [array names add_task] 
@@ -37,21 +49,10 @@ proc addTask { } {
     set lfr3 [labelframe  $fst_layer.labelfr3 -text "Service buttons" -fg blue -bg white ]
     #variables
     global add_task
-    global hours mins month wyear remind
-    #first set up
-    
-    #global add_task
-    
-    set remind "Once"
-    set hours  "hours"
-    set mins   "minutes"
-    set month "January"
-    set lremind [list "Once" "Dayly" "Weekly" "Monthly" "Never"]
-    
+        
     set hour_label   [label $lfr2.label_hour -text "Time event"  -bg white -fg red]
     set remind_label [label $lfr2.label_howoften -text "How often remind:"  -bg white -fg red]
     set etime_hour   [ttk::combobox $lfr2.time_hour -state readonly -textvariable add_task(hours)  -values [  genLst_inrange 0 24 ] -width 7]
-    #set etime_hour  [ttk::combobox $lfr2.time_hour -state readonly -textvariable hours  -values [ for {set i 0} {$i < 24} {incr i} {lappend hour $i } ; set hour ] -width 7]
     set etime_min    [ttk::combobox $lfr2.time_min  -state readonly -textvariable add_task(mins)    -values [genLst_inrange 0 60 ] -width 7 ]
     set reminder     [ttk::combobox $lfr2.reminder  -state readonly -textvariable add_task(remind)  -values $add_task(lremind) ]
     
@@ -62,11 +63,10 @@ proc addTask { } {
     #bind $etime_hour <<ComboboxSelected>>  { set value [$etime_hour get] ; if { ![string is digit $value] } {set hours 0}}
     #bind $etime_hour <<ComboboxSelected>>  { tk_messageBox -message "$hours"}
     #
-
-    global topic_var 
-    set topic_var "New"
-    set label_topic [label $lfr.label_topic -text "Choose task group:" -bg white -fg green]
-    set topic [ttk::combobox $lfr.topic -textvariable add_task(topic_var) -values [list New EC Nimbus Hometask Meeting] -width 12 ]
+    
+    set label_topic [label $lfr.label_topic -text "Choose project name:" -bg white -fg green]
+    set add_task(topic_var) [lindex $add_task(topic_lst) 0]
+    set topic [ttk::combobox $lfr.topic -state readonly -textvariable add_task(topic_var) -values $add_task(topic_lst) -width 12 ]
     
     global ttitle_v ttitle
     
@@ -83,9 +83,12 @@ proc addTask { } {
     grid $label_ttitle    -row 0 -column 2  
     grid $ttitle  -pady 3 -row 1 -column 2   -sticky ne
     #setup year widget
-    set value_year [ expr { [clock format [clock seconds] -format %Y] - 2} ]
-    for {set a 0 } {$a < 10} {incr a} {lappend lyear [incr value_year]  }
-    set add_task(wyear) [lindex $lyear 1]
+    set value_year [clock format [clock seconds] -format %Y]
+    for {set a 0 } {$a < 10} {incr a} {
+        lappend lyear $value_year
+        incr value_year
+    }
+    set add_task(wyear) [lindex $lyear 0]
     #setup month widget
     set calendar_month [ttk::combobox $lfr1.month -state readonly -textvariable add_task(month)   -values [list January February March April May Jun July August September October November December ]  -width 10 ]
     set calendar_year  [ttk::combobox $lfr1.year -state readonly -textvariable add_task(wyear)   -values $lyear  -width 6 ]
@@ -109,13 +112,30 @@ proc addTask { } {
     pack $lfr1 -fill both -side left   -padx 2 -expand 1
     pack $lfr2 -fill y    -side right  -padx 2
     
-    button $lfr3.cancel     -text "Cancel"    -command "destroy $w_topLevel" -bg white  -width 10
-    button $lfr3.continue   -text "Done"      -command "destroy $w_topLevel" -bg white  -width 10
-    button $lfr3.additional -text "Ext.Setup" -command "destroy $w_topLevel" -bg white  -width 10
+    button $lfr3.cancel     -text "Cancel"    -command "destroy $w_topLevel"   -bg white  -width 10
+    button $lfr3.continue   -text "Done"      -command "ev_onDone $w_topLevel" -bg white  -width 10
+    button $lfr3.additional -text "Ext.Setup" -command "destroy $w_topLevel"   -bg white  -width 10
     pack $lfr3.cancel $lfr3.continue $lfr3.additional -side right -padx 3
     pack  $fst_layer  -expand 1 -fill both 
    
     
+}
+proc ev_onDone { widg } {
+    global envar add_task gEvent
+        
+    set  result [list -title $add_task(ttitle_v) \
+                -topic $add_task(topic_var) \
+                -year $add_task(wyear) \
+                -month  $add_task(month) \
+                -day_number $add_task(choosed_day) \
+                -mins $add_task(mins) \
+                -hours $add_task(hours) \
+    ]
+    destroy $widg
+    tk_messageBox -message  $result
+    unset add_task
+    set gEvent(created_task) $result
+    #return result
 }
 proc genLst_inrange { { first 0} {last 100} } {
     for {set i $first} {$i < $last} {incr i} {lappend generatedLst $i }
@@ -140,12 +160,21 @@ proc private_drawCalendar_in {inframe day_cmd} {
     return $sqButton_list
 }
 
-proc private_day_cmd { ref_toWindg } {
- tk_messageBox -message [$ref_toWindg cget -text]
+proc private_day_cmd { ref_toWidg } {
+    global add_task
+    set add_task(choosed_day) [$ref_toWidg cget -text]
+    foreach e  $add_task(handleCalendar)  {
+        set color "white"
+        if { $add_task(choosed_day) == [$e cget -text] } {
+             set color "blue"
+        }   
+        $e configure -bg $color
+    }
+#    tk_messageBox -message [$ref_toWidg cget -text]
 }
 
 proc private_fill_calendar {dayReffs month year } {
-    
+    global add_task
     set startOfMonth [clock format [clock seconds] -format $month/01/$year]
     
     set startOfWeek  [clock format [clock scan "+0 month" -base [clock scan $startOfMonth] ] -format %u]
@@ -156,15 +185,30 @@ proc private_fill_calendar {dayReffs month year } {
     set lastday_in_month [expr { $shift + $cntDay - 1}]
     for {set i 0 } { $i < [llength $dayReffs]} {incr i} {
         if { $i <  $shift  || $i > $lastday_in_month } {
-            [lindex $dayReffs $i  ]  configure -text "" -state disabled
+            #[lindex $dayReffs $i  ]  configure -state normal 
+            [lindex $dayReffs $i  ]  configure -text "" -state disabled -bg white
         } else {
             set value [expr $i - $shift  + 1]
-            [lindex $dayReffs $i ]  configure -text $value -state normal      
+            if { $add_task(choosed_day) > $cntDay } {
+                set value 1
+                set add_task(choosed_day) $value
+            
+            }
+            if { $add_task(choosed_day) == $value } {
+                [lindex $dayReffs $i ]  configure -bg blue
+            } else {
+                [lindex $dayReffs $i ]  configure -bg white
+            }   
+            [lindex $dayReffs $i ]  configure -text $value -state normal 
             
         }
     }
     
 }
+
+
+    
+
 proc change_calendar { options } {
     global  add_task
     set hmonth [lindex $options 0]
@@ -172,9 +216,43 @@ proc change_calendar { options } {
     set nmonth [expr { [lsearch [$hmonth cget -value ] $add_task(month)] + 1} ]
     private_fill_calendar $add_task(handleCalendar) $nmonth $add_task(wyear) 
     #tk_messageBox -message " $month  "   
-} 
+}
+
+proc dialog_add_proj {cmd_name } {
+    set w_topLevel .dialog_add_proj
+    catch {destroy $w_topLevel }
+    toplevel $w_topLevel
+    global  add_proj
+    set add_proj  "New"
+    
+    wm title $w_topLevel "Add new project"
+    #wm iconname $w_topLevel "unicodeout"
+    
+    # expected size of window  400x300    !!!
+    wm minsize $w_topLevel 300 0
+    wm resizable $w_topLevel 0 0
+    set  fst_layer [frame $w_topLevel.fst_layer -bg white ]
+    
+    set lfr  [labelframe  $fst_layer.labelfr  -text "Create new project name" -fg blue -bg white]
+    set lfr1 [labelframe  $fst_layer.labelfr1 -text "Make your choice" -fg blue -bg white ]
+    set name [ttk::entry  $lfr.ent  -textvariable add_proj ]
+    #tk_messageBox -message $add_proj(name_value)
+    pack $name -fill x -padx 2 -pady 2
+    pack $lfr $lfr1  -fill x -padx 2 -pady 2
+    #pack $lfr1 -fill x
+    
+    button $lfr1.cancel     -text "Cancel"    -command "destroy $w_topLevel"   -bg white  -width 10
+    button $lfr1.continue   -text "Accept"      -command "$cmd_name add_proj ; destroy .dialog_add_proj" -bg white  -width 10
+    #button $lfr1.additional -text "Ext.Setup" -command "destroy $w_topLevel"   -bg white  -width 10
+    pack $lfr1.cancel $lfr1.continue  -side right -padx 3 -pady 1
+    pack  $fst_layer  -expand 1 -fill both
+    #unset add_proj
+   
+}
+    #MAIN frame
+    #set  fst_layer [frame $w_topLevel.fst_layer -bg white ]
 #for {set i 0} {$i < 24} {incr i} {lappend hour $i } ; set hour
 #
 #1
 #private_fill_calendar 1 03 2016111111
-addTask
+#addTask

@@ -7,10 +7,21 @@ package require Tk
 #package require Thread
 #package require sqlite3
 # getting path to the directory where was started application
-set run_Directory [file join [pwd] [file dirname [info script]]]   
-lappend auto_path [file dirname [info script] ]
-#lappend auto_path [file dirname [info script] ]
+# 
+set run_Directory [file join [pwd] [file dirname [info script]]]
 
+
+set envar(ext) ".db"
+set envar(var,stor) {}
+
+set config(main_dir) $run_Directory
+set config(whereIsSituatedDb) "[file join $run_Directory usr store]"
+set config(dbName) "db$envar(ext)"
+set config(dbPath) [ file join $config(whereIsSituatedDb) $config(dbName)]  
+
+set gEvent(created_task) {}
+lappend auto_path $config(whereIsSituatedDb)
+lappend auto_path [file dirname [info script] ]
 # option of main window 
 set windowparams {
     title "Scheduler & Planner"
@@ -49,7 +60,9 @@ proc openFile { } {
 }
 
 proc newProject { } {
-	tk_messageBox -message "This is empty procedure - soon it will be work "
+    #create dialog
+    #"db_add_project"  - proc name for button:  accept
+    dialog_add_proj "db_add_project" 
 }
 
 proc merge_prj { } {
@@ -543,9 +556,10 @@ proc initW {} {
 	global bottom_frame	 ; # 
 	global debug_console 	 ; # console
 	global debug_console 	 ; # aditional console
-	global stringCounter ; # щетчик строк или для дополнительных изображений
+	global stringCounter     ; # щетчик строк или для дополнительных изображений
 	global frameText 	 ; # text handle	
 	global lb 			 ; # listbox handle
+    global config
 
 	setup-window . $windowparams
 	if {[dict get $userconfig menubar]} {
@@ -564,17 +578,19 @@ proc initW {} {
     set bottom_ofpaned [frame $top_frame.bottom]
     #---------------------------------------------------------
     global col 	; #aray for setting tree colums
-    set col(date) "date"
+    set col(date) "group name"
     set col(desc) "description"
     set col(summary) "summary"
     set col(created) "created"
     set col(started) "started"
-    set col(owner)   "owner"
-    set col(state)   "done|progerss|future"
+    set col(owner)   "event"
+    set col(state)   "status"
     # columns list
     set list_col [list $col(date)    $col(desc) $col(summary) $col(created) $col(started) $col(state)  $col(owner)]
-    # creat tree
+    # create tree
+    global envar
     set tree [ttk::treeview  $top_ofpaned.tree -columns $list_col -yscroll  "$top_ofpaned.tree.vsb  set" -xscroll "$top_ofpaned.tree.hsb set" ]
+    set envar(widg,tree) $tree
 	# create scroll bar
     ttk::scrollbar $tree.vsb -orient vertical -command "$tree yview"
 	ttk::scrollbar $tree.hsb  -orient horizontal -command "$tree xview"
@@ -594,13 +610,13 @@ proc initW {} {
     # create frame for managing tree
     set toolBar_toTree [frame $top_ofpaned.buttons_toTree -bg "white"]
     # create buttons 
-    set addTask    [button $toolBar_toTree.but_addTask -text "Add Task"    -command { addTask }       -bg "white"]
-    set addSubTask [button $toolBar_toTree.but_addSTask -text "Add subTask" -command { addTask }       -bg "white"]
-    set share      [button $toolBar_toTree.but_share -text "Share"    -command { addTask }       -bg "white"]
-    #set addTask    [button $toolBar_toTree.but_addTask -text ""    -command { addTask }       -bg "white"]
-    set reorder    [button $toolBar_toTree.but_reorder -text "Reorder"     -command { reorderTaskby } -bg "white"]
+    set addTask    [button $toolBar_toTree.but_addTask -text "Add Task"    -command { addTask }       -bg "yellow" -relief flat -overrelief groove]
+    set share      [button $toolBar_toTree.but_share -text "Share"    -command { addTask }       -bg "white" -relief flat -overrelief groove]
+    set reorder    [button $toolBar_toTree.but_reorder -text "Reorder"     -command { reorderTaskby } -bg "white" -relief flat -overrelief groove]
     # add buttons to manage frame
-    pack $reorder $share $addSubTask $addTask    -side right -padx 3
+    grid  $addTask  $share  $reorder 
+    $reorder configure -state disabled
+    #pack $reorder $share  $addTask    -side right -padx 3
     pack $toolBar_toTree  -fill x -side top
     # packing tree frame
     pack  $tree -expand yes -fill both 
@@ -609,16 +625,12 @@ proc initW {} {
     pack $tree.hsb -fill x -side bottom
     # create tree nodes
     #
+    
     $tree insert {} end -id "History" -text "History"  -values [list "-" "Progress for all tasks" "" "" "" "" "" ] -open 0 
-    $tree insert "History" end -id "Current year" -text " [clock format [clock seconds] -format %Y] <- current year "  -values [list "[clock format [clock seconds] -format %Y]" "" "456"] -open 1 
-    $tree insert "Current year" end -id "Current month" -text "[clock format [clock seconds] -format %b] <-current month"    -values [list "[clock format [clock seconds] -format %B]" "Tree of tasks for current month" "" "" "" "" ""] -open 1
-    $tree insert "Current month" end -id "Current week" -text "current week"  -values [list  "week: [clock format [clock seconds] -format %W]" "" "tasks"] -open 1 
-    $tree insert "Current week" end -id "Current day" -text "[clock format [clock seconds] -format %A] <-current day" -values [list "" "" "" "" "" "" "mike"] 
-    $tree insert "Current day" end -text "edit items in tree" -values [list "" "" "" "" "" "" "mike"]
-    $tree insert "Current day" end -text "save tree info" -values [list "" "" "" "" "" "" "mike"]
-    $tree insert "Current day" end -text "load tree from file" -values [list "" "" "" "" "" "" "mike"]
+    
     $tree  insert "" end -id Progress -text "Progress" -values [list "" "Tasks in progress" "" "" "" "" ""]   -open 0
     $tree  insert "" end -id Done -text "Done" -values [list "" "Already done tasks" "" "" "" "" ""]  -open 0
+    $tree  insert "" end -id Pending -text "Pending" -values [list "" "Pending tasks" "" "" "" "" ""]   -open 0
     $tree insert Done end  -text "sub Direct"
     $tree  insert "" end -id NEW -text "NEW"  -values [list "" "Not assigned and not processed tasks" "" "" "" "" ""]
     $tree insert NEW end  -text "task manager" -values [list "" "create mechanism for sorting tasks by data and priority" "" "" "" "" ""] 
@@ -660,23 +672,47 @@ proc initW {} {
 	bind $top_frame	  <Enter>   { %W config -bg grey  }
 	bind $top_frame    <Leave>   { %W config -bg white }
 	bind $frameText  <Any-Key>	{  textHendler  $frameText [list  %K %A %X %W %Y ] }
-    
+    #source_from
+    source_from [file join $config(main_dir) lib ]  Dialog.tcl 
+    source_from [file join $config(main_dir) lib ]  sql_db.tcl
+  
 }
+proc tree_history_fill { lst } {
+    global envar 
+    if { [ llength $lst ] } {
+        set tree $envar(widg,tree)
+        foreach {id key title description points status_id deadline created_at edited_at } $lst {
+             $tree insert History end  -text $title  -values [list $key $description "" "$created_at" "" "$status_id" "$deadline"]
+        }
+    } else { set id 0 }
+    # add count of tasks in collumn
+    $tree set History [$tree column #1 -id ] $id
+}
+proc addTask_to_db {} {
+    addTask
+}
+
 proc source_from { from_folder file_name } {
-    source $from_folder/$file_name 
+    set p [file join $from_folder $file_name ]
+    source $p
    
 }
 #--------------------#--------------------------------------------------------------------------------------------------------------------------
 # описание точки входа в приложен:ие 
 proc main {} {
+    global config envar
 # стартовая настройка окна приложения
 	initW
 # работа приложения
-# load custom packages 
-source_from lib Dialog.tcl
+# load custom packages
+    db_create $config(dbPath)  
+    tree_history_fill [ db_get_tasks $config(dbPath) ]
+    
 }
+
 #-----------------------------------------------------------------------
 # вызов приложения - рабочий программы
+
 main
 
 
