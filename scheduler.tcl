@@ -20,6 +20,15 @@ set config(dbName) "db$envar(ext)"
 set config(dbPath) [ file join $config(whereIsSituatedDb) $config(dbName)]  
 
 set gEvent(created_task) {}
+
+proc tracer {arr_name index_name op} {
+    upvar #0 $arr_name var
+    #puts "$varname was updated to be \"$var\""
+    tk_messageBox -message " $arr_name(index_name)"
+}
+trace add  variable gEvent(created_task) write "tk_messageBox -message $gEvent(created_task)"
+#trace add variable bar write "tracer bar"
+
 lappend auto_path $config(whereIsSituatedDb)
 lappend auto_path [file dirname [info script] ]
 # option of main window 
@@ -609,8 +618,9 @@ proc initW {} {
     $tree column $col(desc) -width 250
     # create frame for managing tree
     set toolBar_toTree [frame $top_ofpaned.buttons_toTree -bg "white"]
-    # create buttons 
-    set addTask    [button $toolBar_toTree.but_addTask -text "Add Task"    -command { addTask }       -bg "yellow" -relief flat -overrelief groove]
+    # create buttons
+    # 
+    set addTask    [button $toolBar_toTree.but_addTask -text "Add Task"    -command { addTask   }       -bg "yellow" -relief flat -overrelief groove]
     set share      [button $toolBar_toTree.but_share -text "Share"    -command { addTask }       -bg "white" -relief flat -overrelief groove]
     set reorder    [button $toolBar_toTree.but_reorder -text "Reorder"     -command { reorderTaskby } -bg "white" -relief flat -overrelief groove]
     # add buttons to manage frame

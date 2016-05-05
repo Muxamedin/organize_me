@@ -156,11 +156,26 @@ proc db_get_tasks { dbpath  } {
     dbcmd close
     return $ltable
 }
+
 proc db_get_taskgrop { dbpath  } {
     sqlite3 dbcmd $dbpath
     set ltable [ dbcmd eval "SELECT * FROM projectgroup" ]
     dbcmd close
     return $ltable
+}
+
+proc db_store_task { dbpath list_data_task } {
+    sqlite3 dbcmd $dbpath
+    
+    #$db_id eval { INSERT INTO tasks ("key", "title", "description",  "status_id", "deadline", "created_at", "edited_at" ) \
+    #VALUES( "task",  )
+    #}
+    #set ltable [ dbcmd eval "SELECT * FROM projectgroup" ]
+    #set ltable [ dbcmd eval "SELECT * FROM projectgroup" ]
+    array set data $list_data_task
+    tk_messageBox -message "[ dbcmd eval "SELECT * FROM projectgroup" ]"
+    dbcmd close
+    #return $ltable
 }
 #set path "G:/proj/TextRedactor/usr/store/mytest.db"
 #file delete -force $path

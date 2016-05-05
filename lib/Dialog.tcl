@@ -1,6 +1,6 @@
 namespace eval ::dialog {
-    
-}
+}    
+
 
 
 proc init_arr_addtask {} {
@@ -133,9 +133,11 @@ proc ev_onDone { widg } {
     ]
     destroy $widg
     tk_messageBox -message  $result
-    unset add_task
     set gEvent(created_task) $result
+    unset add_task
+    
     #return result
+    
 }
 proc genLst_inrange { { first 0} {last 100} } {
     for {set i $first} {$i < $last} {incr i} {lappend generatedLst $i }
