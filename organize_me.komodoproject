@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Komodo Project File - DO NOT EDIT -->
+<project id="cf7be420-95c1-4348-8450-dfee242068d1" kpf_version="5" name="organize_me.komodoproject">
+<preference-set idref="cf7be420-95c1-4348-8450-dfee242068d1" id="project" preftype="project">
+  <boolean id="genericLinter:Tcl">1</boolean>
+  <string id="jshint_linter_chooser">default</string>
+  <string id="jslint_linter_chooser">default</string>
+  <string id="lessDefaultInterpreter">None</string>
+  <long id="prefs_version">1</long>
+  <string id="sassDefaultInterpreter">None</string>
+  <string id="scssDefaultInterpreter">None</string>
+  <boolean id="tcl_debuggerlogenabled">1</boolean>
+  <string id="tclshDefaultInterpreter">C:\Tcl\bin\wish.exe</string>
+</preference-set>
+</project>
