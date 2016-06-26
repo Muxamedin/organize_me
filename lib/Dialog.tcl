@@ -1,8 +1,6 @@
 namespace eval ::dialog {
 }    
 
-
-
 proc init_arr_addtask {} {
     upvar #0 add_task  add_task_
     global config
@@ -55,7 +53,7 @@ proc addTask { } {
     set etime_hour   [ttk::combobox $lfr2.time_hour -state readonly -textvariable add_task(hours)  -values [  genLst_inrange 0 24 ] -width 7]
     set etime_min    [ttk::combobox $lfr2.time_min  -state readonly -textvariable add_task(mins)    -values [genLst_inrange 0 60 ] -width 7 ]
     set reminder     [ttk::combobox $lfr2.reminder  -state readonly -textvariable add_task(remind)  -values $add_task(lremind) ]
-    
+   
     grid $hour_label -pady 2 -columnspan 2   -sticky w
     grid $etime_hour $etime_min -padx 1
     grid $remind_label -row 4 -pady 2 -columnspan 2 -sticky w  
@@ -220,6 +218,10 @@ proc change_calendar { options } {
     #tk_messageBox -message " $month  "   
 }
 
+#--------------------------------------------------------------------------------
+# dialog_add_proj - creates dialog for getting new project
+#           
+#--------------------------------------------------------------------------------
 proc dialog_add_proj {cmd_name } {
     set w_topLevel .dialog_add_proj
     catch {destroy $w_topLevel }
@@ -229,26 +231,27 @@ proc dialog_add_proj {cmd_name } {
     
     wm title $w_topLevel "Add new project"
     #wm iconname $w_topLevel "unicodeout"
-    
     # expected size of window  400x300    !!!
     wm minsize $w_topLevel 300 0
     wm resizable $w_topLevel 0 0
     set  fst_layer [frame $w_topLevel.fst_layer -bg white ]
-    
     set lfr  [labelframe  $fst_layer.labelfr  -text "Create new project name" -fg blue -bg white]
     set lfr1 [labelframe  $fst_layer.labelfr1 -text "Make your choice" -fg blue -bg white ]
     set name [ttk::entry  $lfr.ent  -textvariable add_proj ]
-    #tk_messageBox -message $add_proj(name_value)
+    
+    # --------------------------------------------------------------------------
     pack $name -fill x -padx 2 -pady 2
     pack $lfr $lfr1  -fill x -padx 2 -pady 2
-    #pack $lfr1 -fill x
+    # --------------------------------------------------------------------------    
     
-    button $lfr1.cancel     -text "Cancel"    -command "destroy $w_topLevel"   -bg white  -width 10
-    button $lfr1.continue   -text "Accept"      -command "$cmd_name add_proj ; destroy .dialog_add_proj" -bg white  -width 10
-    #button $lfr1.additional -text "Ext.Setup" -command "destroy $w_topLevel"   -bg white  -width 10
+    button $lfr1.cancel     -text "Cancel"   -command "destroy $w_topLevel"   -bg white  -width 10
+    button $lfr1.continue   -text "Accept"   -command "$cmd_name add_proj ; destroy .dialog_add_proj" -bg white  -width 10
+    
+    # --------------------------------------------------------------------------
     pack $lfr1.cancel $lfr1.continue  -side right -padx 3 -pady 1
     pack  $fst_layer  -expand 1 -fill both
-    #unset add_proj
+    # --------------------------------------------------------------------------
+    
    
 }
     #MAIN frame

@@ -88,26 +88,25 @@ proc db_fill_onstart { db_id } {
     $db_id eval {INSERT INTO tasks VALUES( NULL, "NEW" , "Title of ticket", "Title of ticket This is big description of task  lets think about it togather" , "" , 2 , 12 , "12:12:12", 12) }
 }
 
+#--------------------------------------------------------------------------------
+# db_add_project - adding project to database
+#           name_value -  value of project name 
+#--------------------------------------------------------------------------------
 proc db_add_project { name_value } {
     global config
     upvar #0 $name_value name
-
-    sqlite3 dbcmd $config(dbPath)
-    set db_id dbcmd
-    #config(dbPath)
-    
     if {  $name == "" } {
-        $db_id close
+        puts "there is no name of project"
         return 0
     }
+    sqlite3 dbcmd $config(dbPath)       
+    set db_id dbcmd
     set prj_names [$db_id eval "SELECT * FROM projectgroup"]
-    
     if { [lsearch $prj_names $name] == -1    } {
         $db_id eval "INSERT INTO projectgroup VALUES( NULL, \"$name\" ) "     
     } else {
         tk_messageBox -message "Project name \"$name\" already exists"
     }
-   
     $db_id close
 }
 
