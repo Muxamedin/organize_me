@@ -1,4 +1,3 @@
-
 #!/usr/bin/tclsh \
     exec  wish "$0" ${1+ "$@"}
 
@@ -6,88 +5,126 @@
 package require Tk
 #package require Thread
 #package require sqlite3
-# getting path to the directory where was started application
-# 
+#getting path to the directory where was started application
+
+#directory where was invoked main script
 set run_Directory [file join [pwd] [file dirname [info script]]]
 
-
+# array with environment variables
 set envar(ext) ".db"
 set envar(var,stor) {}
 
-set config(main_dir) $run_Directory
-set config(whereIsSituatedDb) "[file join $run_Directory usr store]"
-set config(dbName) "db$envar(ext)"
-set config(dbPath) [ file join $config(whereIsSituatedDb) $config(dbName)]  
+# config - array
+#        array for storing config data which will use in application
+set config(main_dir) $run_Directory                                            ; # top dir for application
+set config(whereIsSituatedDb) "[file join $run_Directory usr store]"           ; # path to directory with database 
+set config(dbName) "db$envar(ext)"                                             ; # db name 
+set config(dbPath) [ file join $config(whereIsSituatedDb) $config(dbName)]     ; # path to db
 
+#--------------------------------------------------------------------------------
 set gEvent(created_task) {}
-
 proc tracer {arr_name index_name op} {
     upvar #0 $arr_name var
     #puts "$varname was updated to be \"$var\""
-    tk_messageBox -message " $arr_name(index_name)"
+    tk_messageBox -message " $var($index_name)"
 }
+
+set gEv 0
+proc tracer1 {varname args} {
+    upvar #0 $varname var
+    puts "$varname was updated to be \"$var\""
+}
+trace add variable ::gEv write "tracer1 ::gEv"
+#trace add variable bar write "tracer1 bar"
+
+
+
+#--------------------------------------------------------------------------------
 trace add  variable gEvent(created_task) write "tk_messageBox -message $gEvent(created_task)"
 #trace add variable bar write "tracer bar"
 
 lappend auto_path $config(whereIsSituatedDb)
 lappend auto_path [file dirname [info script] ]
+#--------------------------------------------------------------------------------
 # option of main window 
 set windowparams {
     title "Your task(s) scheduler"
     minsize {400 400}
     resizable {1 1}
 }
-
+#--------------------------------------------------------------------------------
 # user configuration of main window
 set userconfig {
     menubar yes
 }
-
-# procedure  of menu -  
+#--------------------------------------------------------------------------------
+# newFile - adding new file 
+#           procedure for menu
+#--------------------------------------------------------------------------------
 proc newFile { } {
 	tk_messageBox -message "This is empty procedure - soon it will be work "
 }
 
-#
+#--------------------------------------------------------------------------------
+# exitProc - exit from application using menu 
+#           procedure for menu
+#--------------------------------------------------------------------------------
 proc exitProc {} {
    tk_messageBox -message "Thank you for using our app. You've choosed action for exit."   
    #here should be actions before exit - saving data , closing files
    exit
 }
 
+#--------------------------------------------------------------------------------
+# planing - plans for user 
+#           procedure for menu
+#--------------------------------------------------------------------------------
 proc planing { } {
 	tk_messageBox -message "This is empty procedure - soon it will be work "
 }
+
+#--------------------------------------------------------------------------------
+# RoadMap - creating maps with planing for future
+#           procedure for menu
+#--------------------------------------------------------------------------------
 proc RoadMap { } {
 	tk_messageBox -message "This is empty procedure - soon it will be work "
 }
+
+#--------------------------------------------------------------------------------
+# includeDB - switch to another db
+#           procedure for menu
+#--------------------------------------------------------------------------------
 proc includeDB { } {
 	tk_messageBox -message "This is empty procedure - soon it will be work "
 }
+
 proc openFile { } {
 	tk_messageBox -message "This is empty procedure - soon it will be work "
 }
 
+#--------------------------------------------------------------------------------
+# newProject - you can add new name of project to database  
+#           
+#--------------------------------------------------------------------------------
 proc newProject { } {
-    #create dialog
-    #"db_add_project"  - proc name for button:  accept
     dialog_add_proj "db_add_project" 
 }
 
 proc merge_prj { } {
-	tk_messageBox -message "This is empty procedure - soon it will be work "
+	tk_messageBox -message "This is empty procedure - soon it will be work. Merging projects "
 }
 
 proc dell_prj { } {
-	tk_messageBox -message "This is empty procedure - soon it will be work "
+	tk_messageBox -message "This is empty procedure - soon it will be work . Delete Project from database"
 }
 
 proc login { } {
-	tk_messageBox -message "This is empty procedure - soon it will be work "
+	tk_messageBox -message "This is empty procedure - soon it will be work . Login to the db"
 }
 
 proc sStatus { } {
-	tk_messageBox -message "This is empty procedure - soon it will be work "
+	tk_messageBox -message "This is empty procedure - soon it will be work. Send status about daily progress. "
 }
 
 proc copy { } {
@@ -109,7 +146,7 @@ proc spellChecker { } {
 	tk_messageBox -message "This is empty procedure - soon it will be work "
 }
 proc about { } {
-    tk_messageBox -message "Simple application for easy typing text reports \n  Code by Mike Bily ( 2014 ) \n  "
+    tk_messageBox -message "Simple application for easy typing text reports \n  Code by Mike Bily ( 2014 - 2016 ) \n  "
 }
 proc help { } {
     tk_messageBox -message " Hot keys :
@@ -123,7 +160,10 @@ proc help { } {
 proc editPreflight_xml {} {
     tk_messageBox -message "Eddition xml file "
 }
-# when you will choose from menu wich report do you whant to see - you will get text template spesialy for your choise
+
+# chooseTemplate 
+#           when you will choose from menu which report do you want to see - you will get text template special for your choice
+#           
 proc chooseTemplate { temlatenumber } {
 	global frameText
 	global debug_console 	 ; # консоль выполнения действий
@@ -301,14 +341,15 @@ proc setup-window {w params} {
     wm minsize $w {*}[dict get $params minsize]
     $w config -bg white
 }
-#	pin menu to window \
-menu -  dictionary contans menu's setup\
-w    -  main window \
-args -   \ 
-#frame .menu_frame -borderwidth 5
-#pack  .menu_frame -side top -fill x 
- 
-proc build-menu {menu w args } {
+
+# build-menu
+#	    pin menu to window 
+#       menu -  dictionary contans menu's setup
+#        w    -  main window 
+#       args -   
+#       frame .menu_frame -borderwidth 5
+#       pack  .menu_frame -side top -fill x 
+ proc build-menu {menu w args } {
     
     dict with args {
         set options [dict filter $menu key -*]
@@ -338,11 +379,12 @@ proc build-menu {menu w args } {
 }
 
 # old proc - depricated
-proc  getListByMask { srclist mask } {
-    global filteredList
-    set filteredList [ lsearch -all -inline $srclist $mask ]
-    return $filteredList
- }
+#proc  getListByMask { srclist mask } {
+#    global filteredList
+#    set filteredList [ lsearch -all -inline $srclist $mask ]
+#    return $filteredList
+# }
+ 
 proc findWordsFromList { maska} {
     global wDictList
     global lb
@@ -696,7 +738,7 @@ proc tree_history_fill { lst } {
         }
     } else { set id 0 }
     # add count of tasks in collumn
-    $tree set History [$tree column #1 -id ] $id
+    #$tree set History [$tree column #1 -id ] $id
 }
 proc addTask_to_db {} {
     addTask

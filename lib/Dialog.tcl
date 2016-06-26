@@ -25,6 +25,9 @@ proc init_arr_addtask {} {
 
 #tk_messageBox -message [array names add_task] 
 
+# addTask - dialog for setting task
+#           no arguments
+#           
 proc addTask { } {
     init_arr_addtask
     set w_topLevel .dialogwindow
@@ -131,7 +134,8 @@ proc ev_onDone { widg } {
     ]
     destroy $widg
     tk_messageBox -message  $result
-    set gEvent(created_task) $result
+    #set gEvent(created_task) $result
+    set ::gEv $result
     unset add_task
     
     #return result
