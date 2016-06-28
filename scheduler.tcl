@@ -1,7 +1,6 @@
 #!/usr/bin/tclsh \
     exec  wish "$0" ${1+ "$@"}
 
-#package require Tcl 8.5
 package require Tk
 #package require Thread
 #package require sqlite3
@@ -48,7 +47,7 @@ lappend auto_path [file dirname [info script] ]
 #--------------------------------------------------------------------------------
 # option of main window 
 set windowparams {
-    title "Your task(s) scheduler"
+    title "Saturn - tool for your time management"
     minsize {400 400}
     resizable {1 1}
 }
@@ -146,7 +145,12 @@ proc spellChecker { } {
 	tk_messageBox -message "This is empty procedure - soon it will be work "
 }
 proc about { } {
-    tk_messageBox -message "Simple application for easy typing text reports \n  Code by Mike Bily ( 2014 - 2016 ) \n  "
+    tk_messageBox -message "Tool for time management. \n \
+    Using current tool you can manage your task. Gathering all task in one place gives to you track history of your actions, \n \
+    track time (ETA and real ) for every task. Tool should collect your comments to every topic - and you can always remember \n \
+    your plans and your great  notice \n \
+     \n\n\t Code by Mike Bily from ( 2014 - 2016 ) Electric Cloud \n \
+    "
 }
 proc help { } {
     tk_messageBox -message " Hot keys :
